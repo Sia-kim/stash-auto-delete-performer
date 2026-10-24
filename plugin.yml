@@ -1,6 +1,6 @@
 name: Auto Delete Banned Performer
-description: "배우 상세 페이지에서 등록한 배우의 영상을 스캔 시 자동으로 삭제합니다."
-version: 1.1.9
+description: "자동 삭제 대상 배우의 영상을 일괄 삭제합니다."
+version: 1.2.6
 url: https://github.com/Sia-kim/stash-auto-delete-performer
 exec:
   - python
@@ -9,7 +9,6 @@ interface: raw
 ui:
   javascript:
     - frontend.js
-hooks:
-  - name: Auto Delete on Scene Create
-    triggeredBy:
-      - Scene.Create.Post
+tasks:
+  - name: "Auto Delete Banned Scenes"
+    description: "AutoDeleteTarget 태그가 달린 배우의 모든 영상을 삭제합니다."
