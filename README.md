@@ -138,4 +138,4 @@ v1.1.0 ~ v1.1.8: 일괄 삭제 기능 추가, 안전장치 도입, 플로팅 UI 
 v1.0.0: 최초 배포.
 
 </details>
-<div align="center"> <sub>Built with ❤️ for the Stash Community</sub> </div> ```
+<div align="center"> <sub>Built with ❤️ for the Stash Community</sub> </div>
