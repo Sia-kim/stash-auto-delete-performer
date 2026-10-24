@@ -1,1 +1,15 @@
-
+name: Auto Delete Banned Performer
+description: 배우 상세 페이지에서 등록한 배우의 영상을 스캔 시 자동으로 삭제합니다.
+version: 1.0.0
+url: https://github.com/당신의_깃허브_아이디/stash-auto-delete-performer
+exec:
+  - python
+  - "{pluginDir}/backend.py"
+interface: raw
+ui:
+  javascript:
+    - frontend.js
+hooks:
+  - name: Auto Delete on Scene Create
+    triggeredBy:
+      - Scene.Create.Post
