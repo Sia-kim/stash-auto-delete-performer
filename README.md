@@ -4,9 +4,8 @@
 
 **특정 배우의 영상을 자동으로 감지하여 실제 파일까지 영구 삭제하는 Stash 플러그인**
 
-[![Stash](https://img.shields.io/badge/Stash-v24%2B-blue?style=for-the-badge&logo=stash)](https://stashapp.cc)
+[![Stash](https://img.shields.io/badge/Stash-v0.24%2B-blue?style=for-the-badge&logo=stash)](https://stashapp.cc)
 [![Version](https://img.shields.io/badge/version-1.2.6-success?style=for-the-badge)](https://github.com/Sia-kim/stash-auto-delete-performer)
-[![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-yellow?style=for-the-badge&logo=python)](https://www.python.org)
 
 [설치 방법](#-설치-방법) • [시놀로지 연동](#-시놀로지-스케줄러-연동-필수) • [버전 기록](#-버전-기록-changelog)
@@ -19,48 +18,36 @@
 `AutoDeleteTarget` 태그가 부여된 배우가 출연하는 영상을 **스캔 완료 후 안전하게 감지**하여, Stash 라이브러리와 실제 하드디스크에서 영구 삭제합니다. 50개 단위 분할 삭제, 철저한 사전 조회 검증, 외부 스케줄러 연동을 통해 대규모 라이브러리에서도 안정적으로 동작합니다.
 
 ## ✨ 주요 기능
-| 기능 | 설명 |
-|---|---|
-| **플로팅 UI** | 배우 페이지에서 클릭 한 번으로 등록/해제 및 수동 삭제 가능 |
-| **자동 삭제** | `AutoDeleteTarget` 태그가 달린 배우의 영상을 50개씩 분할 삭제 |
-| **철저한 안전장치** | 조회 실패, Job Queue 이상, 개수 불일치 시 **즉시 중단** |
-| **외부 스케줄러** | 브라우저 타이머 없이 시놀로지 작업 스케줄러 등으로 백그라운드 실행 |
+- **플로팅 UI**: 배우 페이지 우측 하단에서 클릭 한 번으로 등록/해제 및 수동 삭제 가능
+- **순차 제어 (Scan → Delete)**: 시놀로지 스케줄러가 스캔을 시작하고, **스캔이 100% 완료된 후에만** 삭제 태스크를 호출하여 누락을 방지합니다.
+- **철저한 안전장치**: 조회 실패, Job Queue 이상, 개수 불일치 시 **즉시 중단**하며, 50개씩 분할 삭제하여 서버 과부하를 방지합니다.
 
 ## 🚀 설치 방법
 1. Stash 웹 UI에서 **설정(Settings) → 플러그인(Plugins)** 으로 이동합니다.
 2. **패키지 소스 추가(Add Source)** 를 클릭합니다.
-3. 아래 주소를 입력합니다. (캐시 방지를 위해 `?v=26` 포함)
+3. 아래 주소를 입력합니다. (캐시 방지를 위해 `?v=33` 포함)
    ```text
-   https://sia-kim.github.io/stash-auto-delete-performer/index.yml?v=26
-업데이트 확인 후 1.2.6 버전을 설치합니다.
+   https://sia-kim.github.io/stash-auto-delete-performer/index.yml?v=33
+업데이트 확인 후 플러그인을 설치합니다.
 
-<details> <summary><b>📋 상세 설치 가이드 (클릭하여 펼치기)</b></summary>
-GitHub 저장소의 plugin.yml, backend.py, frontend.js 3개 파일만 ZIP으로 압축합니다.
-
-ZIP 파일의 SHA256 해시를 계산하여 index.yml의 sha256 항목에 반영합니다.
-
-Stash 설정에서 패키지 소스를 등록할 때, 위 설치 주소를 사용합니다.
-
-설치 완료 후 Ctrl + F5 (강력 새로고침)을 눌러 UI를 갱신합니다.
-
-</details>
 ⚙️ 시놀로지 스케줄러 연동 (필수)
-Stash 웹 UI가 꺼져 있어도 매일 정해진 시간에 스캔과 삭제를 순차적으로 실행하려면 시놀로지 작업 스케줄러를 사용하세요.
+Stash 웹 UI가 꺼져 있어도 매일 정해진 시간에 스캔과 삭제를 순차적으로 실행하려면 시놀로지 작업 스케줄러와 연동해야 합니다.
 
 시놀로지 DSM → 제어판 → 작업 스케줄러 → 생성 → 예약된 작업 → 사용자 정의 스크립트
 
 일반 탭: 작업 이름 Stash Auto Delete, 사용자 root
 
-일정 탭: 매일, 오전 5:00 (스캔 시작 전)
+일정 탭: 매일, 원하는 시간(예: 오전 5:00)
 
-작업 설정 탭: 아래 스크립트를 붙여넣기 (IP, 포트, API 키 수정 필수)
+작업 설정 탭: 아래 auto_delete.sh 파일 경로 입력
 
-<details> <summary><b>📜 시놀로지 Bash 스크립트 (클릭하여 펼치기)</b></summary>
+bash
+bash /volume1/본인의_폴더_경로/auto_delete.sh
+<details> <summary><b>📜 auto_delete.sh 스크립트 내용 (클릭하여 펼치기)</b></summary>
 bash
 #!/bin/bash
-# 👇 본인의 Stash 환경에 맞게 IP와 API 키를 수정하세요.
-STASH_URL="http://127.0.0.1:9999/graphql"
-API_KEY="YOUR_STASH_API_KEY"
+STASH_URL="http://127.0.0.1:9999/graphql" # 본인 환경에 맞게 수정
+API_KEY="YOUR_STASH_API_KEY"               # 본인 API 키로 수정
 
 # 1. 스캔 작업 시작
 SCAN_RESPONSE=$(curl -fsS -X POST "$STASH_URL" \
@@ -107,11 +94,11 @@ if [ "$SCAN_FINISHED" = false ]; then
   exit 1
 fi
 
-# 3. 스캔 완료 후 삭제 태스크 실행
+# 3. 스캔 완료 후 삭제 태스크 실행 (플러그인 ID: plugin)
 DELETE_RESPONSE=$(curl -fsS -X POST "$STASH_URL" \
   -H "ApiKey: $API_KEY" \
   -H "Content-Type: application/json" \
-  --data '{"query":"mutation { runPluginTask(plugin_id: \"stash-auto-delete-performer\", task_name: \"Auto Delete Banned Scenes\", description: \"Auto Delete Banned Scenes\") }"}')
+  --data '{"query":"mutation { runPluginTask(plugin_id: \"plugin\", task_name: \"Auto Delete Banned Scenes\", description: \"Auto Delete Banned Scenes\") }"}')
 
 if ! printf '%s' "$DELETE_RESPONSE" | jq -e '((.errors // []) | length == 0) and (.data.runPluginTask | type == "string" and length > 0)' >/dev/null; then
   echo "삭제 태스크 등록 실패: $DELETE_RESPONSE" >&2
@@ -132,7 +119,7 @@ echo "삭제 태스크 등록 완료. Job ID: $DELETE_JOB_ID"
 
 📜 버전 기록 (Changelog)
 <details> <summary><b>전체 버전 기록 보기 (클릭)</b></summary>
-v1.2.6 (최종): 시놀로지 스크립트에 metadataScan 및 findJob을 연동하여 스캔 완료 후에만 삭제가 실행되도록 순차 제어 완벽 구현. Job Queue Null 안전 처리 및 명시적 Description 전달.
+v1.2.6 (최종): 시놀로지 스크립트에 metadataScan 및 findJob을 연동하여 스캔 완료 후에만 삭제가 실행되도록 순차 제어 완벽 구현. 플러그인 고유 ID plugin 적용.
 
 v1.2.5: Job Queue 응답 구조 철저 검증, Job ID 반환 확인(jq), 프런트엔드 중복 검사 강화.
 
@@ -151,3 +138,4 @@ v1.1.0 ~ v1.1.8: 일괄 삭제 기능 추가, 안전장치 도입, 플로팅 UI 
 v1.0.0: 최초 배포.
 
 </details>
+<div align="center"> <sub>Built with ❤️ for the Stash Community</sub> </div> ```
