@@ -1,5 +1,5 @@
 (function() {
-    console.log("Auto Delete Plugin: v1.1.0 로드됨");
+    console.log("Auto Delete Plugin: v1.1.1 로드됨");
 
     const TAG_NAME = "AutoDeleteTarget";
     const BTN_ID = "btn-auto-delete-performer";
@@ -59,7 +59,7 @@
         updateButtonState(hasTag);
         container.appendChild(btn);
 
-        // 2. [NEW] 기존 영상 일괄 삭제 버튼
+        // 2. 기존 영상 일괄 삭제 버튼
         const bulkBtn = document.createElement('button');
         bulkBtn.id = BULK_BTN_ID;
         bulkBtn.className = 'btn btn-outline-danger';
@@ -67,7 +67,6 @@
         bulkBtn.innerText = '💣 기존 영상 일괄 삭제';
         
         bulkBtn.onclick = async () => {
-            // 이중 확인 절차
             if (!confirm(`[경고] ${performerName} 배우의 '모든 기존 영상 파일'을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) return;
             const checkStr = prompt(`정말로 삭제하려면 아래 칸에 배우 이름(${performerName})을 정확히 입력하세요.`);
             if (checkStr !== performerName) {
@@ -79,7 +78,6 @@
             bulkBtn.disabled = true;
 
             try {
-                // 1. 배우의 모든 씬 ID 가져오기
                 const scenesRes = await gql(`
                     query FindScenes($performerId: ID!) {
                         findScenes(scene_filter: { performers: { value: [$performerId], modifier: INCLUDES } }) {
@@ -97,7 +95,6 @@
                     return;
                 }
 
-                // 2. 씬 및 파일 일괄 삭제 (delete_file: true)
                 await gql(`
                     mutation DestroyScenes($ids: [ID!]!) {
                         scenesDestroy(input: { ids: $ids, delete_file: true })
@@ -147,6 +144,7 @@
         }
     }
 
+    // 상단 메뉴에 '삭제 대상 보기' 버튼 추가 (태그 상세 페이지로 이동하도록 수정)
     function injectManagerButton() {
         if (document.getElementById(MGMT_BTN_ID)) return;
         const navbar = document.querySelector('.navbar-nav.ml-auto') || document.querySelector('.navbar-collapse');
@@ -160,8 +158,9 @@
         btn.style.marginTop = '5px';
         btn.innerText = '🗑️ 삭제 대상 보기';
         
-        btn.onclick = () => {
-            window.location.href = '/performers?q=tag%3A%22AutoDeleteTarget%22';
+        btn.onclick = async () => {
+            const tagId = await getOrCreateTag();
+            window.location.href = `/tags/${tagId}`;
         };
         
         li.appendChild(btn);
