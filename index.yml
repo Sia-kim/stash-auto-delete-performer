@@ -1,6 +1,8 @@
 - id: stash-auto-delete-performer
   name: Auto Delete Banned Performer
-  version: 1.1.0
-  date: "2024-05-20 12:00:00"
-  path: stash-auto-delete-performer.zip  # 상대 경로 유지!
+  metadata:
+    description: "배우 상세 페이지에서 등록한 배우의 영상을 스캔 시 자동으로 삭제합니다."
+    version: 1.1.0
+    date: "2024-05-20 12:00:00"
+  path: stash-auto-delete-performer.zip
   sha256: f5725b8028f802bafc28d294f1d8de13ed414166c958b390b937499e693d3ab6
