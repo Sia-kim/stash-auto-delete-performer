@@ -1,5 +1,5 @@
 - id: stash-auto-delete-performer
   name: Auto Delete Banned Performer
   version: 1.0.0
-  date: 2026-10-24 12:00:00
+  date: "2026-10-24 12:00:00"
   path: https://raw.githubusercontent.com/Sia-kim/stash-auto-delete-performer/main/plugin.yml
