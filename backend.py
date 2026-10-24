@@ -1,6 +1,5 @@
 import sys
 import json
-import os
 import stashapi.log as log
 from stashapi.stashapp import StashInterface
 
@@ -14,14 +13,17 @@ def main():
         log.error(f"Failed to parse input: {e}")
         return
 
-    # Stash 서버 연결 정보 (Docker 환경변수 기반)
-    server_conn = {
-        "scheme": os.environ.get("STASH_SCHEME", "http"),
-        "host": os.environ.get("STASH_HOST", "localhost"),
-        "port": os.environ.get("STASH_PORT", "9999"),
-        "apikey": os.environ.get("STASH_API_KEY", "")
-    }
-    stash = StashInterface(server_conn)
+    server_conn = data.get("server_connection") or data.get("args", {}).get("server_connection")
+    if not server_conn:
+        log.error("No server_connection found in hook context.")
+        return
+        
+    try:
+        stash = StashInterface(server_conn)
+        stash.RAISE_GQL_ERRORS = True
+    except Exception as e:
+        log.error(f"Failed to connect to Stash: {e}")
+        return
 
     hook_context = data.get("args", {}).get("hookContext", {})
     if hook_context.get("type") != "Scene.Create.Post":
@@ -31,12 +33,10 @@ def main():
     if not scene_id:
         return
 
-    # 씬 정보 조회 (출연 배우 및 태그 확인)
     query = """
     query FindScene($id: ID!) {
         findScene(id: $id) {
             id
-            title
             performers {
                 id
                 name
@@ -47,12 +47,12 @@ def main():
     """
     
     try:
-        result = stash.graphql.query(query, {"id": scene_id})
-        scene = result.get("findScene")
+        result = stash.call_GQL(query, {"id": scene_id})
+        scene = result.get("findScene") if result else None
         if not scene:
+            log.warning(f"씬 {scene_id} 조회 결과가 없습니다.")
             return
 
-        # 삭제 대상 배우가 있는지 확인
         TARGET_TAG = "AutoDeleteTarget"
         should_delete = False
         deleted_performer_name = ""
@@ -67,17 +67,21 @@ def main():
         if should_delete:
             log.info(f"자동 삭제 대상 배우({deleted_performer_name})가 포함된 씬 {scene_id}를 발견했습니다. 파일을 삭제합니다.")
             
-            # 씬 및 실제 파일 삭제 (delete_file: true)
             destroy_mutation = """
-            mutation DestroyScenes($ids: [ID!]!, $delete_file: Boolean!) {
-                scenesDestroy(input: { ids: $ids, delete_file: $delete_file })
+            mutation DestroyScenes($ids: [ID!]!, $delete_file: Boolean!, $delete_generated: Boolean!) {
+                scenesDestroy(input: { ids: $ids, delete_file: $delete_file, delete_generated: $delete_generated })
             }
             """
-            stash.graphql.mutation(destroy_mutation, {
-                "ids": [scene_id],
-                "delete_file": True # 실제 비디오 파일 삭제
+            del_res = stash.call_GQL(destroy_mutation, {
+                "ids": [scene_id], 
+                "delete_file": True,
+                "delete_generated": True
             })
-            log.info(f"씬 {scene_id} 및 실제 파일 삭제 완료.")
+            
+            if not del_res or del_res.get("scenesDestroy") is not True:
+                log.error(f"씬 {scene_id} 삭제 결과 확인 실패: {del_res}")
+            else:
+                log.info(f"씬 {scene_id} 및 실제 파일 삭제 완료.")
             
     except Exception as e:
         log.error(f"Error processing scene {scene_id}: {e}")
