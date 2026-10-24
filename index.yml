@@ -1,8 +1,8 @@
 - id: stash-auto-delete-performer
   name: Auto Delete Banned Performer
-  version: 1.1.9
+  version: 1.2.6
   date: "2024-05-20 12:00:00"
   path: stash-auto-delete-performer.zip
-  sha256: "68078b37b01f47180005f913982402c5a60a17ef683ea8cc002349bf536f99bd"
+  sha256: "5b191001a8b52771552eb90e0443ea5926bf26362b6b65ff4a3430c3166380a9"
   metadata:
     description: "Automatically deletes scenes featuring registered performers."
