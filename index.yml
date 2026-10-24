@@ -1,6 +1,6 @@
 - id: stash-auto-delete-performer
   name: Auto Delete Banned Performer
   version: 1.0.4
-  date: "2024-05-20 12:00:00"  # <-- 2024년 등 과거 날짜로 수정!
+  date: "2024-05-20 12:00:00"
   path: https://raw.githubusercontent.com/Sia-kim/stash-auto-delete-performer/main/stash-auto-delete-performer.zip
   sha256: 3ea1998d040c34c49183722cb9ddbc02b9f7f72a548ad4aae825d40cfd24c888
