@@ -1,5 +1,5 @@
 (function() {
-    console.log("Auto Delete Plugin: v1.1.1 로드됨");
+    console.log("Auto Delete Plugin: v1.1.2 로드됨");
 
     const TAG_NAME = "AutoDeleteTarget";
     const BTN_ID = "btn-auto-delete-performer";
@@ -23,19 +23,22 @@
     }
 
     async function injectPerformerButtons() {
+        // 배우 상세 페이지가 아니면 종료
         const match = window.location.pathname.match(/^\/performers\/(\d+)/);
         if (!match) return;
+
+        // 이미 버튼이 있으면 중복 주입 방지
         if (document.getElementById(BTN_ID)) return;
 
-        const performerId = match[1];
-        const allButtons = Array.from(document.querySelectorAll('button'));
-        const deleteBtn = allButtons.find(b => b.innerText.includes('삭제') || b.innerText.includes('Delete'));
-        
-        let container = deleteBtn ? deleteBtn.parentElement : document.querySelector('.details-edit');
-        if (!container) return;
+        // Stash의 고유한 버튼 컨테이너(.details-edit)가 화면에 나타났는지 확인
+        const container = document.querySelector('.details-edit .btn-group');
+        if (!container) return; // 아직 화면이 다 안 그려졌으면 대기
 
+        const performerId = match[1];
         const tagId = await getOrCreateTag();
         const res = await gql(`query { findPerformer(id: "${performerId}") { name tags { id } } }`);
+        if (!res.data || !res.data.findPerformer) return;
+
         const performerName = res.data.findPerformer.name;
         const hasTag = res.data.findPerformer.tags.some(t => t.id === tagId);
 
@@ -144,7 +147,7 @@
         }
     }
 
-    // 상단 메뉴에 '삭제 대상 보기' 버튼 추가 (태그 상세 페이지로 이동하도록 수정)
+    // 상단 메뉴에 '삭제 대상 보기' 버튼 (배우 탭 검색 URL로 안정화)
     function injectManagerButton() {
         if (document.getElementById(MGMT_BTN_ID)) return;
         const navbar = document.querySelector('.navbar-nav.ml-auto') || document.querySelector('.navbar-collapse');
@@ -158,17 +161,25 @@
         btn.style.marginTop = '5px';
         btn.innerText = '🗑️ 삭제 대상 보기';
         
-        btn.onclick = async () => {
-            const tagId = await getOrCreateTag();
-            window.location.href = `/tags/${tagId}`;
+        // 🔥 빈 화면이 뜨는 Stash의 태그 라우팅 버그를 피하기 위해 배우 탭 검색 쿼리로 이동
+        btn.onclick = () => {
+            window.location.href = '/performers?q=tag.name%3A%22AutoDeleteTarget%22';
         };
         
         li.appendChild(btn);
         navbar.insertBefore(li, navbar.firstChild);
     }
 
-    setInterval(() => {
-        injectPerformerButtons();
-        injectManagerButton();
-    }, 1000);
+    // setInterval을 제거하고 MutationObserver로 DOM 변경을 감지 (Debounce 적용)
+    let debounceTimer;
+    const observer = new MutationObserver(() => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            injectPerformerButtons();
+            injectManagerButton();
+        }, 300); // 0.3초 대기하여 React 렌더링이 끝난 후 실행
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
 })();
