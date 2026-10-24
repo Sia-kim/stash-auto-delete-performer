@@ -3,6 +3,6 @@
   version: 1.2.6
   date: "2024-05-20 12:00:00"
   path: stash-auto-delete-performer.zip
-  sha256: "5b191001a8b52771552eb90e0443ea5926bf26362b6b65ff4a3430c3166380a9"
+  sha256: "3b4fdde4468ee20f368fe53e8f9e7e78bc3bc33b316700bf44e7c7f153ccb506"
   metadata:
     description: "Automatically deletes scenes featuring registered performers."
