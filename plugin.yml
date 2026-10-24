@@ -1,6 +1,6 @@
 name: Auto Delete Banned Performer
 description: "배우 상세 페이지에서 등록한 배우의 영상을 스캔 시 자동으로 삭제합니다."
-version: 1.0.0
+version: 1.0.1
 url: https://github.com/Sia-kim/stash-auto-delete-performer
 exec:
   - python
